@@ -1,0 +1,5 @@
+{
+  "name": "Gemini Text Generation UI",
+  "description": "A user interface designed to interact with a text-to-text generation model, similar to a Hugging Face Space. It allows users to input prompts, adjust generation parameters like temperature and top-p, and receive streamed responses from the model.",
+  "requestFramePermissions": []
+}
