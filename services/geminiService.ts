@@ -12,11 +12,12 @@ const ai = new GoogleGenAI({ apiKey: API_KEY });
 export async function* streamGenerateText(
     prompt: string,
     temperature: number,
-    topP: number
+    topP: number,
+    model: string
 ): AsyncGenerator<string, void, unknown> {
     try {
         const stream = await ai.models.generateContentStream({
-            model: "gemini-2.5-flash",
+            model: model,
             contents: prompt,
             config: {
                 temperature,

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -6,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gemini Text Generation UI</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @keyframes blink {
+        50% {
+          opacity: 0;
+        }
+      }
+      .blinking-cursor {
+        animation: blink 1s step-end infinite;
+      }
+    </style>
   <script type="importmap">
 {
   "imports": {
