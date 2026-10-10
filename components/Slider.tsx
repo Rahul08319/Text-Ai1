@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface SliderProps {
@@ -9,30 +8,61 @@ interface SliderProps {
   step: number;
   onChange: (value: number) => void;
   disabled: boolean;
+  isDark: boolean;
+  hint?: string;
 }
 
-export const Slider: React.FC<SliderProps> = ({ label, value, min, max, step, onChange, disabled }) => {
+export const Slider: React.FC<SliderProps> = ({
+  label,
+  value,
+  min,
+  max,
+  step,
+  onChange,
+  disabled,
+  isDark,
+  hint
+}) => {
+  const percentage = ((value - min) / (max - min)) * 100;
+
   return (
-    <div className="w-full">
-      <div className="flex justify-between items-center mb-1">
-        <label className="text-sm font-medium text-gray-400">{label}</label>
-        <span className="text-sm font-mono text-indigo-400 bg-indigo-900/50 px-2 py-0.5 rounded">
+    <div className="w-full space-y-2">
+      <div className="flex justify-between items-center">
+        <label className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+          {label}
+        </label>
+        <span className={`text-xs font-mono font-medium px-2 py-0.5 rounded-lg border ${
+          isDark 
+            ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' 
+            : 'bg-blue-50 text-blue-600 border-blue-200'
+        }`}>
           {value.toFixed(2)}
         </span>
       </div>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(parseFloat(e.target.value))}
-        disabled={disabled}
-        className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-        style={{
-            accentColor: 'rgb(99 102 241)', // indigo-500
-        }}
-      />
+
+      <div className="relative flex items-center">
+        <input
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          onChange={(e) => onChange(parseFloat(e.target.value))}
+          disabled={disabled}
+          className="apple-slider w-full h-2 rounded-full appearance-none cursor-pointer disabled:cursor-not-allowed transition-all duration-150 outline-none"
+          style={{
+            background: isDark
+              ? `linear-gradient(to right, #3b82f6 0%, #6366f1 ${percentage}%, rgba(255,255,255,0.1) ${percentage}%, rgba(255,255,255,0.1) 100%)`
+              : `linear-gradient(to right, #0071e3 0%, #4338ca ${percentage}%, rgba(0,0,0,0.08) ${percentage}%, rgba(0,0,0,0.08) 100%)`
+          }}
+        />
+      </div>
+
+      {hint && (
+        <p className={`text-[11px] leading-tight ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+          {hint}
+        </p>
+      )}
     </div>
   );
 };

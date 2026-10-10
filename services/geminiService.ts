@@ -1,39 +1,62 @@
-
 import { GoogleGenAI } from "@google/genai";
 
-const API_KEY = process.env.API_KEY;
-
-if (!API_KEY) {
-    throw new Error("API_KEY environment variable not set.");
-}
-
-const ai = new GoogleGenAI({ apiKey: API_KEY });
+export const getEffectiveApiKey = (customKey?: string): string => {
+  if (customKey && customKey.trim()) {
+    return customKey.trim();
+  }
+  try {
+    const saved = localStorage.getItem('gemini_api_key');
+    if (saved && saved.trim()) return saved.trim();
+  } catch {
+    // ignore localStorage error in restricted frames
+  }
+  return (process.env.API_KEY || (process.env as any).GEMINI_API_KEY || '').trim();
+};
 
 export async function* streamGenerateText(
-    prompt: string,
-    temperature: number,
-    topP: number,
-    model: string
+  prompt: string,
+  temperature: number,
+  topP: number,
+  model: string,
+  customApiKey?: string,
+  systemInstruction?: string
 ): AsyncGenerator<string, void, unknown> {
-    try {
-        const stream = await ai.models.generateContentStream({
-            model: model,
-            contents: prompt,
-            config: {
-                temperature,
-                topP,
-                maxOutputTokens: 2048, // Corresponds to Hugging Face `max_length`
-            },
-        });
+  const apiKey = getEffectiveApiKey(customApiKey);
+  
+  if (!apiKey) {
+    throw new Error(
+      "Gemini API Key not found. Please click the 🔑 key icon in the navigation bar to enter your API key, or add GEMINI_API_KEY to .env.local."
+    );
+  }
 
-        for await (const chunk of stream) {
-            yield chunk.text;
-        }
-    } catch (error) {
-        console.error("Error in streamGenerateText:", error);
-        if (error instanceof Error) {
-            throw new Error(`Gemini API Error: ${error.message}`);
-        }
-        throw new Error("An unknown error occurred while communicating with the Gemini API.");
+  try {
+    const ai = new GoogleGenAI({ apiKey });
+    const config: Record<string, any> = {
+      temperature,
+      topP,
+      maxOutputTokens: 4096,
+    };
+
+    if (systemInstruction && systemInstruction.trim()) {
+      config.systemInstruction = systemInstruction.trim();
     }
+
+    const stream = await ai.models.generateContentStream({
+      model: model || 'gemini-2.5-flash',
+      contents: prompt,
+      config,
+    });
+
+    for await (const chunk of stream) {
+      if (chunk.text) {
+        yield chunk.text;
+      }
+    }
+  } catch (error) {
+    console.error("Error in streamGenerateText:", error);
+    if (error instanceof Error) {
+      throw new Error(`Gemini API Error: ${error.message}`);
+    }
+    throw new Error("An unknown error occurred while communicating with the Gemini API.");
+  }
 }

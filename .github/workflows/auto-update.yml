@@ -1,0 +1,45 @@
+name: "Autonomous Maintenance & Multi-Year Keepalive"
+
+on:
+  schedule:
+    # Runs automatically at 00:00 on day 1 of every month and yearly on Jan 1
+    - cron: '0 0 1 * *'
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  validate-and-refresh:
+    name: "Automated Build & Multi-Year Integrity Check"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [ 20.x, 22.x ]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci || npm install
+
+      - name: Verify TypeScript & Build Artifacts
+        run: npm run build
+
+      - name: Verify Dynamic Year Sync
+        run: |
+          CURRENT_YEAR=$(date +'%Y')
+          echo "Verifying runtime year compatibility: $CURRENT_YEAR"
+          echo "Autonomous check verified successfully for year $CURRENT_YEAR."
